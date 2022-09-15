@@ -3,41 +3,51 @@ import java.util.*;
 
 public class Bagging {
 
+    // Main method
     public static void main(String[] args) throws IOException {
 
-        String ruta = "src/iris.data";
-        int sizeMuestra = 5;
-        Dataset dataset = new Dataset(ruta);
-        //MinimaDistancia minimaDistancia = null;
-        Knn knn = null;
-        int[] resultados = new int[sizeMuestra];
-        float exactitud = 0;
-        float contador = 0;
+        // Define the dataset path on this case iris dataset, but you can use another
+        String path = "src/iris.data";
+
+        // Define the size of the population sample
+        int sampleSize = 5;
+
+        // Instance of dataset using the path
+        Dataset dataset = new Dataset(path);
+
+        // Instance of k nearest neighbor
+        Knn knn;
+
+        // Create a new array results to save
+        int[] results = new int[sampleSize];
+        // Float varible to save the accuracy
+        float accuracy = 0;
+        // A simple counter to count the number of evaluated patterns
+        float counter = 0;
 
         for(int i = 0; i < dataset.getPrueba().size(); i++){
             for(int j = 0; j < dataset.getPrueba().get(i).size(); j++){
-                for(int k = 0; k < sizeMuestra; k++){
-                    dataset = new Dataset(ruta);
-                    //minimaDistancia = new MinimaDistancia(dataset, dataset.getPrueba().get(i).get(j));
+                for(int k = 0; k < sampleSize; k++){
+                    dataset = new Dataset(path);
                     knn = new Knn(dataset, dataset.getPrueba().get(i).get(j), 4);
                     System.out.println("Patron " + knn.getClasificacion());
-                    resultados[k] = knn.getClasificacion();
+                    results[k] = knn.getClasificacion();
                 }
-                //System.out.println("Patron " + Arrays.toString(dataset.getPrueba().get(i).get(j)) + " = " + obtenerMasRepetido(resultados));
-                contador++;
-                if(obtenerMasRepetido(resultados) == i)
-                    exactitud++;
-                resultados = new int[sizeMuestra];
+                counter++;
+                if(getMostRepeated(results) == i)
+                    accuracy++;
+                results = new int[sampleSize];
             }
         }
-        System.out.println("Total de patrones evaluados = " + contador + "\nTotal de patrones correctos = " + exactitud + "\nTotal de patrones incorrectos = " + (contador-exactitud));
-        System.out.println((exactitud/contador*100) + "% de exactitud");
+        System.out.println("Total de patrones evaluados = " + counter + "\nTotal de patrones correctos = " + accuracy + "\nTotal de patrones incorrectos = " + (counter-accuracy));
+        System.out.println((accuracy/counter*100) + "% de exactitud");
     }
 
-    public static int obtenerMasRepetido(int[] resultados){
+    // Method to get the most repeated classification
+    public static int getMostRepeated(int[] results){
         HashMap<Integer, Integer> mapa = new HashMap<>();
-        for (int x = 0; x < resultados.length; x++) {
-            int resultado = resultados[x];
+        for (int x = 0; x < results.length; x++) {
+            int resultado = results[x];
             if (mapa.containsKey(resultado)) {
                 mapa.put(resultado, mapa.get(resultado) + 1);
             } else {

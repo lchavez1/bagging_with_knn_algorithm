@@ -8,119 +8,155 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 
-/**
- *
- * @author AndrésEspinalJiménez
- */
+// The base code was programmed by my teacher Andrés Espinal Jiménez, but I did some updates
 
+// Dataset class, that class read the dataset, next divide in train and test set
 public class Dataset {
-    private LinkedList<String> etiqueta;
-    private HashMap<Integer, LinkedList<Float[]>> patrones;
+    // This list save class tags
+    private LinkedList<String> tag;
+    // HashMap that save the paterns on values and tags on key
+    private HashMap<Integer, LinkedList<Float[]>> patterns;
 
-    private HashMap<Integer, LinkedList<Float[]>> entrenamiento;
-    private HashMap<Integer, LinkedList<Float[]>> prueba;
+    // Here we have two lists, one by train set and another by test set
+    private HashMap<Integer, LinkedList<Float[]>> train;
+    private HashMap<Integer, LinkedList<Float[]>> test;
 
-    private float pEntrenamiento = 0.90f;
-    private float pPrueba = 1 - pEntrenamiento;
+    // On the next variable "trainPercentage" we have a percentage that
+    // means the size of the patterns that will be used to train set
+    private float trainPercentage = 0.90f;
+    // Therefore, the rest will be used for testing
+    private float testPercentage = 1 - trainPercentage;
 
-    public Dataset(String rutaArchivo) throws FileNotFoundException, IOException{
-        BufferedReader lector = new BufferedReader(new FileReader(new File(rutaArchivo)));
-        String linea = "";
-        this.etiqueta = new LinkedList<>();
-        this.patrones =  new HashMap<>();
+    // Constructor of the class, here we received just the path of the dataset
+    public Dataset(String path) throws IOException{
+        // This bufferedReader will help me to read the datatset
+        BufferedReader reader = new BufferedReader(new FileReader(path));
 
-        while((linea = lector.readLine()) != null){
-            String[] sPatron = linea.split(",");
+        // Empty string, we will use this variable to read each line of the dataset file
+        String line = "";
 
-            if(!this.etiqueta.contains(sPatron[sPatron.length -1])){
-                this.etiqueta.add(sPatron[sPatron.length -1]);
-                this.patrones.put(this.etiqueta.indexOf(sPatron[sPatron.length -1]), new LinkedList<>());
+        // Initialize tag and patterns
+        this.tag = new LinkedList<>();
+        // Remember patterns is a HashMap because we will save keys (tag) and values (pattern)
+        this.patterns =  new HashMap<>();
+
+        // While reader are reading new lines different from null mean that the file is not finished reading yet
+        while((line = reader.readLine()) != null){
+            // The dataset is .data file, on this case we have this file separated by "," (comma)
+            // therefore we have to split with this character
+            // Create a new string array to save each patter
+            String[] sPatron = line.split(",");
+
+            // The structure of dataset is the following:
+            // 5.1,3.5,1.4,0.2,Iris-setosa
+            // First 4 values are the features of the pattern and the final value is the class tag
+
+            // Once we understand the above, we can continue ...
+            // If we don't have the new tag in the Map, we need add it
+            if(!this.tag.contains(sPatron[sPatron.length -1])){
+                // add the key, as you can see, we add the last value of the array "sPatron"
+                // this means that we will add the class tag
+                this.tag.add(sPatron[sPatron.length -1]);
+                // Finally, add an empty list from that key (class tag)
+                this.patterns.put(this.tag.indexOf(sPatron[sPatron.length -1]), new LinkedList<>());
             }
+            // Temporal float array, on this array we will save the features of the pattern
+            // The size is like "sPatron" length minus 1 because on this case we don't need the tag class
             Float[] tmp = new Float[sPatron.length - 1];
-            for(Integer i = 0; i < sPatron.length - 1; i++)
+
+            // For each pattern, add it to his respective key (class tag)
+            for(int i = 0; i < sPatron.length - 1; i++)
+                // Cast to Float
                 tmp[i] = Float.valueOf(sPatron[i]);
-            this.patrones.get(this.etiqueta.indexOf(sPatron[sPatron.length -1])).add(tmp);
+            // First I get the key, next add the pattern to this key
+            this.patterns.get(this.tag.indexOf(sPatron[sPatron.length -1])).add(tmp);
         }
 
-        divisionEntranamientoPrueba();
+        // At the final of read the dataset we divide into test and train sets
+        divideIntoTrainAndTest();
     }
 
     public LinkedList<String> getEtiquetas(){
 
-        for( int i = 0; i < this.etiqueta.size(); i++){
-            if(this.etiqueta.get(i).equals("") || this.etiqueta.get(i) == null){
-                this.etiqueta.remove(i);
-                //System.out.println("Elimino una etiqueta vacia");
+        for( int i = 0; i < this.tag.size(); i++){
+            if(this.tag.get(i).equals("") || this.tag.get(i) == null){
+                this.tag.remove(i);
             }
         }
-        return this.etiqueta;
+        return this.tag;
 
     }
 
     public HashMap<Integer, LinkedList<Float[]>> getPatrones(){
-        for(int i = 0; i < this.patrones.size(); i++){
-            if(this.patrones.get(i) == null || this.patrones.get(i).getFirst().length == 0){
-                this.patrones.remove(i);
+        for(int i = 0; i < this.patterns.size(); i++){
+            if(this.patterns.get(i) == null || this.patterns.get(i).getFirst().length == 0){
+                this.patterns.remove(i);
                 //System.out.println("Se elimino un patron vacio");
             }
         }
-        return this.patrones;
+        return this.patterns;
 
     }
 
-    public void divisionEntranamientoPrueba(){
-        Random numAleatorio = new Random();
-        this.entrenamiento = new HashMap<>();
+    // Method to divide every data into test set and train set
+    public void divideIntoTrainAndTest(){
+        // We will need a random value to get random patterns
+        Random random = new Random();
+
+        // Train set process
+        // Initialize train HashMap
+        this.train = new HashMap<>();
+        // A new list that will contain float arrays with the pattern features
         LinkedList<Float[]> list = new LinkedList<>();
-        //float porcentajeEntrenamientoXClase = pEntrenamiento/this.getEtiquetas().size();
+
+        // For each tag on the dataset we will need to select the same quantity of patterns
         for(int i = 0; i < this.getEtiquetas().size(); i++){
-            float nPatrones = pEntrenamiento * this.getPatrones().get(i).size();
-            nPatrones = (int) nPatrones;
+            // Compute the number of patterns that we will need to each tag
+            int nPatrones = (int) (trainPercentage * this.getPatrones().get(i).size());
+
+            // We get "n" patterns for each class tag
             for(int j = 0; j < nPatrones; j++){
-                int index = numAleatorio.nextInt(this.getPatrones().get(i).size()-1+1) + 0;
+                // To get the pattern, we need to do it randomly
+                // At final of this compute, we will get the index of some (random) pattern
+                int index = random.nextInt(this.getPatrones().get(i).size() - 1 + 1);
+                // Finally, we add it to the list
                 list.add(this.getPatrones().get(i).get(index));
             }
-            this.entrenamiento.put(i, list);
+
+            // Put the list of patterns for each tag
+            // i = tag
+            // list = list of patterns
+            this.train.put(i, list);
+
+            // We empty the list to use it again in the next iteration
             list = new LinkedList<>();
         }
 
-        this.prueba = new HashMap<>();
+        // Test set process
+        // Initialize test HashMap
+        this.test = new HashMap<>();
+
+        // We empty the list to use it again
         list = new LinkedList<>();
-        //float porcentajePruebaXClase = pPrueba/this.getEtiquetas().size();
         for(int i = 0; i < this.getEtiquetas().size(); i++){
-            float nPatrones = pPrueba * this.getPatrones().get(i).size();
+            float nPatrones = testPercentage * this.getPatrones().get(i).size();
             nPatrones = (int) nPatrones;
             for(int j = 0; j < nPatrones; j++){
-                int index = numAleatorio.nextInt(this.getPatrones().get(i).size()-1+1) + 0;
+                int index = random.nextInt(this.getPatrones().get(i).size()-1+1) + 0;
                 list.add(this.getPatrones().get(i).get(index));
             }
-            this.prueba.put(i, list);
+            this.test.put(i, list);
             list = new LinkedList<>();
         }
     }
 
     public HashMap<Integer, LinkedList<Float[]>> getEntrenamiento(){
-        return this.entrenamiento;
+        return this.train;
     }
 
     public HashMap<Integer, LinkedList<Float[]>> getPrueba(){
-        return this.prueba;
+        return this.test;
     }
-
-    /*public static void main(String[] args) throws FileNotFoundException, IOException{
-        Dataset ds = new Dataset("src/iris.data");
-
-        System.out.println(ds.getPrueba().get(0).size());
-        System.out.println(ds.getEntrenamiento().get(0).size());
-        System.out.println(ds.getPrueba().get(1).size());
-        System.out.println(ds.getEntrenamiento().get(1).size());
-
-        System.out.println(ds.getPatrones().get(0).size());
-        System.out.println( ds.getPatrones().get(1).size());
-
-
-
-    }*/
 
 }
 
