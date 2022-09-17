@@ -21,6 +21,9 @@ public class Dataset {
     private HashMap<Integer, LinkedList<Float[]>> train;
     private HashMap<Integer, LinkedList<Float[]>> test;
 
+    // On this map I will save the names of the tags
+    private HashMap<Integer, String> terminology = new HashMap<>();
+
     // On the next variable "trainPercentage" we have a percentage that
     // means the size of the patterns that will be used to train set
     private float trainPercentage = 0.90f;
@@ -29,7 +32,7 @@ public class Dataset {
 
     // Constructor of the class, here we received just the path of the dataset
     public Dataset(String path) throws IOException{
-        // This bufferedReader will help me to read the datatset
+        // This bufferedReader will help me to read the dataset
         BufferedReader reader = new BufferedReader(new FileReader(path));
 
         // Empty string, we will use this variable to read each line of the dataset file
@@ -138,23 +141,35 @@ public class Dataset {
 
         // We empty the list to use it again
         list = new LinkedList<>();
+
+        // For each tag on the dataset we will need to select the same quantity of patterns
         for(int i = 0; i < this.getEtiquetas().size(); i++){
-            float nPatrones = testPercentage * this.getPatrones().get(i).size();
-            nPatrones = (int) nPatrones;
+            // Compute the number of patterns that we will need to each tag
+            int nPatrones = (int) (testPercentage * this.getPatrones().get(i).size());
+
+            // We get "n" patterns for each class tag
             for(int j = 0; j < nPatrones; j++){
-                int index = random.nextInt(this.getPatrones().get(i).size()-1+1) + 0;
+                // To get the pattern, we need to do it randomly
+                // At final of this compute, we will get the index of some (random) pattern
+                int index = random.nextInt(this.getPatrones().get(i).size() - 1 + 1);
+                // Finally, we add it to the list
                 list.add(this.getPatrones().get(i).get(index));
             }
+
+            // Put the list of patterns for each tag
             this.test.put(i, list);
+            // We empty the list to use it again in the next iteration
             list = new LinkedList<>();
         }
     }
 
-    public HashMap<Integer, LinkedList<Float[]>> getEntrenamiento(){
+    // Return train set
+    public HashMap<Integer, LinkedList<Float[]>> getTrain(){
         return this.train;
     }
 
-    public HashMap<Integer, LinkedList<Float[]>> getPrueba(){
+    // Return test set
+    public HashMap<Integer, LinkedList<Float[]>> getTest(){
         return this.test;
     }
 
