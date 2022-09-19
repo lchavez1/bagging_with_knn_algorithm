@@ -1,9 +1,6 @@
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
@@ -21,9 +18,6 @@ public class Dataset {
     private HashMap<Integer, LinkedList<Float[]>> train;
     private HashMap<Integer, LinkedList<Float[]>> test;
 
-    // On this map I will save the names of the tags
-    private HashMap<Integer, String> terminology = new HashMap<>();
-
     // On the next variable "trainPercentage" we have a percentage that
     // means the size of the patterns that will be used to train set
     private float trainPercentage = 0.90f;
@@ -36,7 +30,7 @@ public class Dataset {
         BufferedReader reader = new BufferedReader(new FileReader(path));
 
         // Empty string, we will use this variable to read each line of the dataset file
-        String line = "";
+        String line;
 
         // Initialize tag and patterns
         this.tag = new LinkedList<>();
@@ -79,10 +73,15 @@ public class Dataset {
         divideIntoTrainAndTest();
     }
 
-    public LinkedList<String> getEtiquetas(){
+    // Return the validated tags
+    public LinkedList<String> getTags(){
 
+        // This I code is because sometimes with some datasets
+        // have patterns without tag
         for( int i = 0; i < this.tag.size(); i++){
+            // So, if the tag equals to null or "", we remove from the list
             if(this.tag.get(i).equals("") || this.tag.get(i) == null){
+                // Remove empty tag
                 this.tag.remove(i);
             }
         }
@@ -90,7 +89,7 @@ public class Dataset {
 
     }
 
-    public HashMap<Integer, LinkedList<Float[]>> getPatrones(){
+    public HashMap<Integer, LinkedList<Float[]>> getPatterns(){
         for(int i = 0; i < this.patterns.size(); i++){
             if(this.patterns.get(i) == null || this.patterns.get(i).getFirst().length == 0){
                 this.patterns.remove(i);
@@ -113,17 +112,17 @@ public class Dataset {
         LinkedList<Float[]> list = new LinkedList<>();
 
         // For each tag on the dataset we will need to select the same quantity of patterns
-        for(int i = 0; i < this.getEtiquetas().size(); i++){
+        for(int i = 0; i < this.getTags().size(); i++){
             // Compute the number of patterns that we will need to each tag
-            int nPatrones = (int) (trainPercentage * this.getPatrones().get(i).size());
+            int nPatterns = (int) (trainPercentage * this.getPatterns().get(i).size());
 
             // We get "n" patterns for each class tag
-            for(int j = 0; j < nPatrones; j++){
+            for(int j = 0; j < nPatterns; j++){
                 // To get the pattern, we need to do it randomly
                 // At final of this compute, we will get the index of some (random) pattern
-                int index = random.nextInt(this.getPatrones().get(i).size() - 1 + 1);
+                int index = random.nextInt(this.getPatterns().get(i).size() - 1 + 1);
                 // Finally, we add it to the list
-                list.add(this.getPatrones().get(i).get(index));
+                list.add(this.getPatterns().get(i).get(index));
             }
 
             // Put the list of patterns for each tag
@@ -143,17 +142,17 @@ public class Dataset {
         list = new LinkedList<>();
 
         // For each tag on the dataset we will need to select the same quantity of patterns
-        for(int i = 0; i < this.getEtiquetas().size(); i++){
+        for(int i = 0; i < this.getTags().size(); i++){
             // Compute the number of patterns that we will need to each tag
-            int nPatrones = (int) (testPercentage * this.getPatrones().get(i).size());
+            int nPatrones = (int) (testPercentage * this.getPatterns().get(i).size());
 
             // We get "n" patterns for each class tag
             for(int j = 0; j < nPatrones; j++){
                 // To get the pattern, we need to do it randomly
                 // At final of this compute, we will get the index of some (random) pattern
-                int index = random.nextInt(this.getPatrones().get(i).size() - 1 + 1);
+                int index = random.nextInt(this.getPatterns().get(i).size() - 1 + 1);
                 // Finally, we add it to the list
-                list.add(this.getPatrones().get(i).get(index));
+                list.add(this.getPatterns().get(i).get(index));
             }
 
             // Put the list of patterns for each tag

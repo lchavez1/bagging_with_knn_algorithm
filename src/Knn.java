@@ -24,7 +24,7 @@ public class Knn {
         LinkedList<Distance> distances = new LinkedList<>();
 
         // For each neighbor we need to compute the distance
-        for(int i = 0; i < dataset.getEtiquetas().size(); i++){
+        for(int i = 0; i < dataset.getTags().size(); i++){
             for(int j = 0; j < dataset.getTrain().get(i).size(); j++){
                 // This is the distance value
                 double distance = computeDistance(dataset.getTrain().get(i).get(j));
