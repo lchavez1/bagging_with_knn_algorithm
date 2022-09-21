@@ -89,11 +89,13 @@ public class Dataset {
 
     }
 
+    // Return patterns
     public HashMap<Integer, LinkedList<Float[]>> getPatterns(){
+        // This part of code helps to remove empty patterns
         for(int i = 0; i < this.patterns.size(); i++){
+            // If the pattern is empty or equals to null we remove it
             if(this.patterns.get(i) == null || this.patterns.get(i).getFirst().length == 0){
                 this.patterns.remove(i);
-                //System.out.println("Se elimino un patron vacio");
             }
         }
         return this.patterns;
